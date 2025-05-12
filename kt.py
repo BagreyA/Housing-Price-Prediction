@@ -291,3 +291,80 @@ sns.histplot(residuals, bins=30, kde=True)
 plt.title("Распределение остатков (Residuals)")
 plt.xlabel("Остаток")
 plt.show()
+
+# Визуализация важности признаков для линейных моделей: Ridge и Lasso
+for model_name in ['Ridge', 'Lasso']:
+    model = models[model_name]
+    coefs = model.coef_
+    importance_df = pd.DataFrame({
+        'Признак': X_train.columns,
+        'Важность': np.abs(coefs)
+    }).sort_values(by='Важность', ascending=False)
+
+    top_n = 20
+    top_features_df = importance_df.head(top_n)
+
+    plt.figure(figsize=(10, 8))
+    sns.barplot(x='Важность', y='Признак', data=top_features_df, palette='mako')
+    plt.title(f'Топ {top_n} признаков по важности ({model_name})')
+    plt.xlabel('Абсолютное значение коэффициента')
+    plt.tight_layout()
+    plt.show()
+
+# Сравнение распределения признаков в train и test для Ridge и Lasso
+for model_name in ['Ridge', 'Lasso']:
+    model = models[model_name]
+    train_copy = X.copy()
+    test_copy = X_test.copy()
+    train_copy['Тип'] = 'Обучающая выборка'
+    test_copy['Тип'] = 'Тестовая выборка'
+
+    # Объединяем для визуализации
+    merged = pd.concat([train_copy, test_copy], axis=0)
+
+    # Визуализация распределения признаков
+    features_to_plot = ['GrLivArea', 'TotalSF']  # добавь другие признаки по желанию
+
+    for feature in features_to_plot:
+        plt.figure(figsize=(10, 6))
+        sns.histplot(data=merged, x=feature, hue='Тип', kde=True, bins=40, element="step", stat="density", common_norm=False)
+        plt.title(f'Сравнение распределения признака "{feature}" в train и test ({model_name})')
+        plt.xlabel(feature)
+        plt.ylabel('Плотность')
+        plt.tight_layout()
+        plt.show()
+
+    # Boxplot сравнение признака в train и test
+    for feature in features_to_plot:
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(data=merged, x='Тип', y=feature)
+        plt.title(f'Boxplot сравнение признака "{feature}" между Train и Test ({model_name})')
+        plt.xlabel('Набор данных')
+        plt.ylabel(feature)
+        plt.tight_layout()
+        plt.show()
+
+# Визуализация предсказаний vs фактических значений для Ridge и Lasso
+for model_name in ['Ridge', 'Lasso']:
+    model = models[model_name]
+    preds_valid = model.predict(X_valid)
+    
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(x=np.expm1(y_valid), y=np.expm1(preds_valid), alpha=0.6)
+    plt.xlabel("Фактическая цена")
+    plt.ylabel("Предсказанная цена")
+    plt.plot([0, max(np.expm1(y_valid))], [0, max(np.expm1(y_valid))], color='red', linestyle='--')
+    plt.title(f"Фактическая vs Предсказанная цена ({model_name})")
+    plt.show()
+
+# Анализ остатков для Ridge и Lasso
+for model_name in ['Ridge', 'Lasso']:
+    model = models[model_name]
+    preds_valid = model.predict(X_valid)
+    residuals = y_valid - preds_valid
+    
+    plt.figure(figsize=(8, 6))
+    sns.histplot(residuals, bins=30, kde=True)
+    plt.title(f"Распределение остатков (Residuals) ({model_name})")
+    plt.xlabel("Остаток")
+    plt.show()
