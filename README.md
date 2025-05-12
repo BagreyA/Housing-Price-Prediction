@@ -1,4 +1,4 @@
-##Housing Price Prediction — Прогнозирование цен на жильё
+## Housing Price Prediction — Прогнозирование цен на жильё
 
 Структура проекта:
 - train.csv, test.csv — входные данные
